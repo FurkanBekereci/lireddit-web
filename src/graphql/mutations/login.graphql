@@ -1,0 +1,5 @@
+mutation Login($loginData: UsernamePasswordInput!, $loginType: LoginType!) {
+  login(loginData: $loginData, loginType: $loginType) {
+    ...RegularUserResponse
+  }
+}

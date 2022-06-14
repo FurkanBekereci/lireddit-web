@@ -1,0 +1,11 @@
+mutation AddPost($postData: PostInput!) {
+  addPost(postData: $postData) {
+    id
+    createdAt
+    updatedAt
+    title
+    points
+    text
+    userId
+  }
+}

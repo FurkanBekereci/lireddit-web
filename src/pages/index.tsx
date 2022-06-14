@@ -1,56 +1,95 @@
+import { withUrqlClient } from 'next-urql';
+import { useGetPostsQuery } from '../generated/graphql';
+import { createUrqlClient } from './../utils/createUrqlClient';
+import Layout from './../components/Layout';
+import NextLink from 'next/link';
 import {
-  Link as ChakraLink,
+  Box,
+  Button,
+  Flex,
+  Heading,
+  IconButton,
+  Link,
+  Stack,
   Text,
-  Code,
-  List,
-  ListIcon,
-  ListItem,
-} from '@chakra-ui/react'
-import { CheckCircleIcon, LinkIcon } from '@chakra-ui/icons'
+} from '@chakra-ui/react';
+import { useIsAuth } from './../utils/useIsAuth';
+import { NextPage } from 'next';
+import { useState } from 'react';
+import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
+import UpdootSection from './../components/UpdootSection';
 
-import { Hero } from '../components/Hero'
-import { Container } from '../components/Container'
-import { Main } from '../components/Main'
-import { DarkModeSwitch } from '../components/DarkModeSwitch'
-import { CTA } from '../components/CTA'
-import { Footer } from '../components/Footer'
+const Index: NextPage = () => {
+  // useIsAuth();
+  // const [{ data: dataMe, fetching }] = useMeQuery();
+  // console.log('dataMe : ', dataMe);
+  const [variables, setVariables] = useState({
+    limit: 15,
+    cursor: null as string | null,
+  });
 
-const Index = () => (
-  <Container height="100vh">
-    <Hero />
-    <Main>
-      <Text color="text">
-        Example repository of <Code>Next.js</Code> + <Code>chakra-ui</Code> +{' '}
-        <Code>TypeScript</Code>.
-      </Text>
+  const [{ data, fetching }] = useGetPostsQuery({
+    variables,
+  });
 
-      <List spacing={3} my={0} color="text">
-        <ListItem>
-          <ListIcon as={CheckCircleIcon} color="green.500" />
-          <ChakraLink
-            isExternal
-            href="https://chakra-ui.com"
-            flexGrow={1}
-            mr={2}
+  //console.log('data coming : ', data);
+  // console.log('hasMore: ', data.getPosts.hasMore);
+
+  if (!fetching && !data) {
+    return <div>you got query failed for some reason</div>;
+  }
+
+  // console.log('data:', data?.getPosts.posts);
+
+  return (
+    <Layout>
+      {/* <Flex align="center">
+        <Heading>LiReddit</Heading>
+        <NextLink href="/add-post">
+          <Link ml="auto">add post</Link>
+        </NextLink>
+      </Flex>
+      <br /> */}
+      {!data && fetching ? (
+        <div>loading...</div>
+      ) : (
+        <Stack spacing={8}>
+          {data!.getPosts.posts.map((p, i) => (
+            <Flex key={i} p={5} shadow="md" borderWidth="1px">
+              <UpdootSection post={p} />
+              <Box ml={8}>
+                <NextLink href="post/[id]" as={`/post/${p.id}`}>
+                  <Link>
+                    <Heading fontSize="xl">{p.title}</Heading>
+                  </Link>
+                </NextLink>
+                <Text>posted by {p.user.username}</Text>
+                <Text mt={4}>{p.textSnippet}</Text>
+              </Box>
+            </Flex>
+          ))}
+        </Stack>
+      )}
+      {data && data.getPosts.hasMore ? (
+        <Flex my={8}>
+          <Button
+            onClick={() =>
+              setVariables({
+                limit: variables.limit,
+                cursor:
+                  data?.getPosts.posts[data.getPosts?.posts.length - 1]
+                    .createdAt,
+              })
+            }
+            isLoading={fetching}
+            m="auto"
           >
-            Chakra UI <LinkIcon />
-          </ChakraLink>
-        </ListItem>
-        <ListItem>
-          <ListIcon as={CheckCircleIcon} color="green.500" />
-          <ChakraLink isExternal href="https://nextjs.org" flexGrow={1} mr={2}>
-            Next.js <LinkIcon />
-          </ChakraLink>
-        </ListItem>
-      </List>
-    </Main>
+            load more
+          </Button>
+        </Flex>
+      ) : null}
+    </Layout>
+  );
+};
 
-    <DarkModeSwitch />
-    <Footer>
-      <Text>Next ❤️ Chakra</Text>
-    </Footer>
-    <CTA />
-  </Container>
-)
-
-export default Index
+export default withUrqlClient(createUrqlClient, { ssr: true })(Index);
