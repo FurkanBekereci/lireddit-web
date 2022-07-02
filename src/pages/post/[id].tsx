@@ -2,21 +2,13 @@ import React from 'react';
 import { NextPage } from 'next';
 import { withUrqlClient } from 'next-urql';
 import { createUrqlClient } from '../../utils/createUrqlClient';
-import { useRouter } from 'next/router';
-import { usePostByIdQuery } from '../../generated/graphql';
 import Layout from './../../components/Layout';
 import { Box, Heading, Text } from '@chakra-ui/react';
+import { useGetPostFromUrl } from './../../utils/useGetPostFromUrl';
+import EditDeletePostButtons from './../../components/EditDeletePostButtons';
 
 const Post: NextPage = ({}) => {
-  const router = useRouter();
-  // console.log('router.query.id:', !router.query.id);
-
-  const [{ data, error, fetching }] = usePostByIdQuery({
-    pause: !router.query?.id,
-    variables: {
-      id: Number(router.query.id) || -1,
-    },
-  });
+  const { id, data, error, fetching } = useGetPostFromUrl();
 
   if (fetching) {
     return (
@@ -31,13 +23,15 @@ const Post: NextPage = ({}) => {
   }
 
   if (!data?.getPostById) {
-    return <Layout>No post available with id: {router.query.id}</Layout>;
+    return <Layout>Post not found</Layout>;
   }
 
+  const { title, text, id: postId, userId } = data.getPostById;
   return (
     <Layout>
-      <Heading mb={4}>{data.getPostById.title}</Heading>
-      <Text>{data.getPostById.text}</Text>
+      <Heading mb={4}>{title}</Heading>
+      <Text mb={4}>{text}</Text>
+      <EditDeletePostButtons id={postId} userId={userId} />
     </Layout>
   );
 };

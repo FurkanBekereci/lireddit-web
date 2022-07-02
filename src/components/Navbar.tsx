@@ -18,6 +18,7 @@ const Navbar: React.FC<NavbarProps> = ({}) => {
 
     if (logoutRes) {
       console.log('logged out');
+      router.reload();
     } else {
       console.log('could not be logged out!!');
     }
@@ -64,20 +65,15 @@ const Navbar: React.FC<NavbarProps> = ({}) => {
   }
 
   return (
-    <Flex
-      position="sticky"
-      top={0}
-      zIndex={1}
-      bg={'tan'}
-      padding={4}
-      align="center"
-    >
-      <NextLink href="/">
-        <Link>
-          <Heading>LiReddit</Heading>
-        </Link>
-      </NextLink>
-      <Box ml="auto">{body}</Box>
+    <Flex position="sticky" top={0} zIndex={1} bg={'tan'} padding={4}>
+      <Flex flex={1} m="auto" maxW={800} align="center">
+        <NextLink href="/">
+          <Link>
+            <Heading>LiReddit</Heading>
+          </Link>
+        </NextLink>
+        <Box ml="auto">{body}</Box>
+      </Flex>
     </Flex>
   );
 };

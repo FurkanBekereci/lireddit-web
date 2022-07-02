@@ -1,5 +1,5 @@
 import { withUrqlClient } from 'next-urql';
-import { useGetPostsQuery } from '../generated/graphql';
+import { useDeletePostMutation, useGetPostsQuery } from '../generated/graphql';
 import { createUrqlClient } from './../utils/createUrqlClient';
 import Layout from './../components/Layout';
 import NextLink from 'next/link';
@@ -16,8 +16,15 @@ import {
 import { useIsAuth } from './../utils/useIsAuth';
 import { NextPage } from 'next';
 import { useState } from 'react';
-import { ChevronDownIcon, ChevronUpIcon } from '@chakra-ui/icons';
+import {
+  ChevronDownIcon,
+  ChevronUpIcon,
+  DeleteIcon,
+  EditIcon,
+} from '@chakra-ui/icons';
 import UpdootSection from './../components/UpdootSection';
+import { useMeQuery } from './../generated/graphql';
+import EditDeletePostButtons from './../components/EditDeletePostButtons';
 
 const Index: NextPage = () => {
   // useIsAuth();
@@ -31,6 +38,8 @@ const Index: NextPage = () => {
   const [{ data, fetching }] = useGetPostsQuery({
     variables,
   });
+
+  // const [{ data: meData }] = useMeQuery();
 
   //console.log('data coming : ', data);
   // console.log('hasMore: ', data.getPosts.hasMore);
@@ -54,20 +63,29 @@ const Index: NextPage = () => {
         <div>loading...</div>
       ) : (
         <Stack spacing={8}>
-          {data!.getPosts.posts.map((p, i) => (
-            <Flex key={i} p={5} shadow="md" borderWidth="1px">
-              <UpdootSection post={p} />
-              <Box ml={8}>
-                <NextLink href="post/[id]" as={`/post/${p.id}`}>
-                  <Link>
-                    <Heading fontSize="xl">{p.title}</Heading>
-                  </Link>
-                </NextLink>
-                <Text>posted by {p.user.username}</Text>
-                <Text mt={4}>{p.textSnippet}</Text>
-              </Box>
-            </Flex>
-          ))}
+          {data!.getPosts.posts.map((p, i) =>
+            !p ? null : (
+              <Flex key={p.id} p={5} shadow="md" borderWidth="1px">
+                <UpdootSection post={p} />
+                <Box ml={8} flex={1}>
+                  <NextLink href="post/[id]" as={`/post/${p.id}`}>
+                    <Link>
+                      <Heading fontSize="xl">{p.title}</Heading>
+                    </Link>
+                  </NextLink>
+                  <Text>posted by {p.user.username}</Text>
+                  <Flex>
+                    <Text flex={1} mt={4}>
+                      {p.textSnippet}
+                    </Text>
+                    <Box ml="auto">
+                      <EditDeletePostButtons userId={p.userId} id={p.id} />
+                    </Box>
+                  </Flex>
+                </Box>
+              </Flex>
+            )
+          )}
         </Stack>
       )}
       {data && data.getPosts.hasMore ? (
